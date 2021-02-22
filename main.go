@@ -170,8 +170,8 @@ func createmydbtable(w http.ResponseWriter, r *http.Request) {
 
 // Main function
 func main() {
-	os.Setenv("AWS_ACCESS_KEY_ID", "AKIAISBWLMXFHGYPJXUA")
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "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")
+	// os.Setenv("AWS_ACCESS_KEY_ID", "")
+	// os.Setenv("AWS_SECRET_ACCESS_KEY", "")
 
 	// Init router
 	r := mux.NewRouter()

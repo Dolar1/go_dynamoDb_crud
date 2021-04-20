@@ -61,7 +61,7 @@ func uploadCsv(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// cupcakeJSON, _ := json.Marshal(cupcake)
-	fmt.Println(cupcake)
+	fmt.Println(len(cupcake))
 
 	//===================================
 	// uploading the data
@@ -69,7 +69,7 @@ func uploadCsv(w http.ResponseWriter, r *http.Request) {
 
 	// json.NewEncoder(w).Encode(book)
 	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String("us-east-2"),
+		Region:      aws.String("ap-south-1"),
 		Credentials: credentials.NewEnvCredentials(),
 	})
 
@@ -80,23 +80,29 @@ func uploadCsv(w http.ResponseWriter, r *http.Request) {
 	// Create DynamoDB client
 	svc := dynamodb.New(sess)
 
-	// add items to the table
-	// item := CupCake{Month: "June", CupcakeCount: "10"}
-	item := Item{
-		Month:        "2004-01",
-		CupcakeCount: 20,
+	// looping over data to write into the dynamodb
+	for i := 0; i < len(cupcake); i++ {
+		item := Item{
+			Month:        cupcake[i].Month,
+			CupcakeCount: cupcake[i].CupcakeCount,
+		}
+
+		// marshall map the items
+		av, _ := dynamodbattribute.MarshalMap(item)
+		fmt.Println(av)
+		input := &dynamodb.PutItemInput{
+			Item:      av,
+			TableName: aws.String("Cupcakes"),
+		}
+
+		_, err = svc.PutItem(input)
+		if err != nil {
+			fmt.Println(err.Error())
+			break
+		}
 	}
 
-	// marshall map the items
-	av, err := dynamodbattribute.MarshalMap(item)
-	fmt.Println(av)
-	input := &dynamodb.PutItemInput{
-		Item:      av,
-		TableName: aws.String("Cupcake"),
-	}
-
-	_, err = svc.PutItem(input)
-
+	// sending the response from here...
 	if err != nil {
 		fmt.Println("Got error calling PutItem:")
 		fmt.Println(err.Error())
@@ -114,16 +120,16 @@ func updateCsv(w http.ResponseWriter, r *http.Request) {
 }
 
 func createmydbtable(w http.ResponseWriter, r *http.Request) {
+
 	sess, _ := session.NewSession(&aws.Config{
-		Region:      aws.String("us-east-2"),
+		Region:      aws.String("ap-south-1"),
 		Credentials: credentials.NewEnvCredentials(),
 	})
-
 	// Create DynamoDB client
 	svc := dynamodb.New(sess)
 
 	// Create table Movies
-	tableName := "Cupcake"
+	tableName := "Cupcakess"
 
 	input := &dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
@@ -170,8 +176,8 @@ func createmydbtable(w http.ResponseWriter, r *http.Request) {
 
 // Main function
 func main() {
-	// os.Setenv("AWS_ACCESS_KEY_ID", "")
-	// os.Setenv("AWS_SECRET_ACCESS_KEY", "")
+	os.Setenv("AWS_ACCESS_KEY_ID", "AKIA2GJWK274ILBJFKWH")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "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")
 
 	// Init router
 	r := mux.NewRouter()

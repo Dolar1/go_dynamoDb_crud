@@ -26,14 +26,14 @@ type CupCake struct {
 	PrimaryId    string
 	Month        string `json:"month"`
 	CupcakeCount int    `json:"cupCakeCount"`
-	Time         string
+	UpdateTime   string
 }
 
 type Item struct {
 	PrimaryId    string
 	Month        string
 	CupcakeCount int
-	Time         string
+	UpdateTime   string
 }
 
 //=========================================
@@ -145,7 +145,7 @@ func uploadCsv(w http.ResponseWriter, r *http.Request) {
 			PrimaryId:    strconv.Itoa(i + 1),
 			Month:        cupcake[i].Month,
 			CupcakeCount: cupcake[i].CupcakeCount,
-			Time:         time.Now().String(),
+			UpdateTime:   time.Now().String(),
 		}
 
 		// marshall map the items
@@ -212,23 +212,10 @@ func GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get all books
-func updateRandom100(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
+func updateRandom100() {
+	// w.Header().Set("Access-Control-Allow-Origin", "*")
+	// w.Header().Set("Content-Type", "application/json")
 	fmt.Println("update api hit")
-
-	//generate a random list of intizers b/w 1-200
-	var random_arr []int
-
-	for len(random_arr) < 100 {
-		var r = rand.Intn(200)
-		random_arr = append(random_arr, r)
-	}
-
-	//look for primary key and update them with the time in a new row
-
-	// write a call back to run this task every 5 mints
-	// untill the request is manullay closed
 
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String("ap-south-1"),
@@ -238,28 +225,40 @@ func updateRandom100(w http.ResponseWriter, r *http.Request) {
 	// Create DynamoDB client
 	svc := dynamodb.New(sess)
 
-	//update code
-	tableName := "Cupcakes"
+	// run this every 5 mint untill its manualy closed..
+	//set interval calling
+	// setInterval(func() {
+	// 	fmt.Println("Hello World")
+	// 	// printed++
+	// }, 1000, false)
+
+	//generate a random list of intizers b/w 1-200
+	var random_arr []int
+
+	for len(random_arr) < 100 {
+		var r = rand.Intn(200)
+		random_arr = append(random_arr, r)
+	}
 
 	for i := 0; i < len(random_arr); i++ {
 
 		input := &dynamodb.UpdateItemInput{
 			ExpressionAttributeNames: map[string]*string{
-				"#T": aws.String("Time"),
+				"#T": aws.String("UpdateTime"),
 			},
 			ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-				":Time": {
+				":UpdateTime": {
 					S: aws.String(time.Now().String()),
 				},
 			},
-			TableName: aws.String(tableName),
+			TableName: aws.String("Cupcakes"),
 			Key: map[string]*dynamodb.AttributeValue{
 				"PrimaryId": {
 					S: aws.String(strconv.Itoa(random_arr[i])),
 				},
 			},
 			// ReturnValues:     aws.String("UPDATED_NEW"),
-			UpdateExpression: aws.String("SET #T = :Time"),
+			UpdateExpression: aws.String("SET #T = :UpdateTime"),
 		}
 
 		_, err := svc.UpdateItem(input)
@@ -276,10 +275,11 @@ func updateRandom100(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Got error calling PutItem:")
 		fmt.Println(err.Error())
-		json.NewEncoder(w).Encode(err.Error())
+		// json.NewEncoder(w).Encode(err.Error())
 		// os.Exit(1)
 	} else {
-		json.NewEncoder(w).Encode("Successfully updated")
+		fmt.Println("updated")
+		// json.NewEncoder(w).Encode("Successfully updated")
 	}
 }
 
@@ -287,9 +287,12 @@ func updateRandom100(w http.ResponseWriter, r *http.Request) {
 
 // Main function
 func main() {
-	os.Setenv("AWS_ACCESS_KEY_ID", "AKIA2GJWK274ILBJFKWH")
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "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")
+	os.Setenv("AWS_ACCESS_KEY_ID", "AKIA36DAVZZSXFVOEAFA")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "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")
 
+	// c := cron.New()
+	// c.AddFunc("*/1 * * * *", func() { updateRandom100() })
+	// c.Start()
 	// Init router
 	r := mux.NewRouter()
 
@@ -298,7 +301,7 @@ func main() {
 	r.HandleFunc("/uploadcsv", uploadCsv).Methods("GET")
 	r.HandleFunc("/getcsv", getCsv).Methods("GET")
 	r.HandleFunc("/getall", GetAll).Methods("GET")
-	r.HandleFunc("/updateRandom100", updateRandom100).Methods("GET")
+	// r.HandleFunc("/updateRandom100", updateRandom100).Methods("GET")
 
 	// Start server
 	log.Fatal(http.ListenAndServe(":8000", r))

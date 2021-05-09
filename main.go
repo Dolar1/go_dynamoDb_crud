@@ -287,8 +287,8 @@ func updateRandom100() {
 
 // Main function
 func main() {
-	os.Setenv("AWS_ACCESS_KEY_ID", "AKIA36DAVZZSXFVOEAFA")
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "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")
+	os.Setenv("AWS_ACCESS_KEY_ID", "ENTER_HERE")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "ENTER_HERE")
 
 	// c := cron.New()
 	// c.AddFunc("*/1 * * * *", func() { updateRandom100() })
